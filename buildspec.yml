@@ -6,16 +6,20 @@ phases:
       docker: 18
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
+      - echo Logging in to Amazon ECR ...
+      - check environment variable ...
+      - echo "AWS_ACCOUNT_ID=\"$AWS_ACCOUNT_ID\""
+      - echo "AWS_DEFAULT_REGION=\"$AWS_DEFAULT_REGION\""
+      - echo "ENVIRONMENT_NAME=\"$ENVIRONMENT_NAME\""
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
       - docker build -t web-app:hello-world-flask-app ./repos/web-app/hello-world-flask-app
-      - docker tag web-app:hello-world-flask-app $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ENVIRONMENT_NAME-web-app:hello-world-flask-app
+      - docker tag web-app:hello-world-flask-app "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ENVIRONMENT_NAME-web-app:hello-world-flask-app"
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ENVIRONMENT_NAME-web-app:hello-world-flask-app
+      - docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ENVIRONMENT_NAME-web-app:hello-world-flask-app"
