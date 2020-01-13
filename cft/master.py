@@ -100,7 +100,7 @@ code_build_project = codebuild.Project(
     Description="Docker Image CICD on AWS Best Practice",
     Source=codebuild.Source(
         Type="GITHUB",
-        Location="https://github.com/enquizit/Docker-Image-CICD-on-awsBest-Practice",
+        Location="https://github.com/enquizit/Docker-Image-CICD-on-awsBest-Practice.git",
         GitCloneDepth=1,
         ReportBuildStatus=False,
     ),
@@ -118,9 +118,9 @@ code_build_project = codebuild.Project(
     # Triggers=codebuild.ProjectTriggers(
     #     Webhook=True,
     #     FilterGroups=[
-            # codebuild.WebhookFilter(
-            # ),
-        # ],
+    #         codebuild.WebhookFilter(
+    #         ),
+    #     ],
     # ),
 
 )
