@@ -108,6 +108,9 @@ code_build_project = codebuild.Project(
         Type="GITHUB",
         Location="https://github.com/enquizit/Docker-Image-CICD-on-awsBest-Practice.git",
         GitCloneDepth=1,
+        GitSubmodulesConfig=codebuild.GitSubmodulesConfig(
+            FetchSubmodules=False,
+        ),
         ReportBuildStatus=False,
     ),
     Artifacts=codebuild.Artifacts(Type="NO_ARTIFACTS"),
@@ -121,13 +124,18 @@ code_build_project = codebuild.Project(
     ),
     ServiceRole=code_build_service_role.iam_role_arn,
     BadgeEnabled=True,
-    # Triggers=codebuild.ProjectTriggers(
-    #     Webhook=True,
-    #     FilterGroups=[
-    #         codebuild.WebhookFilter(
-    #         ),
-    #     ],
-    # ),
+    Triggers=codebuild.ProjectTriggers(
+        Webhook=True,
+        FilterGroups=[
+            [
+                codebuild.WebhookFilter(
+                    Type="EVENT",
+                    Pattern="PUSH,PULL_REQUEST_CREATED,PULL_REQUEST_UPDATED",
+                    ExcludeMatchedPattern=False,
+                ),
+            ]
+        ],
+    ),
 
 )
 
