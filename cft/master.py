@@ -64,7 +64,7 @@ cft_dir = Path(__file__).parent
 repos_dir = cft_dir.change(new_basename="repos")
 
 repo_names = list()
-for subfolder in repos_dir.select_dir():
+for subfolder in repos_dir.select_dir(recursive=False):
     repo_basename = subfolder.basename
     repo_logic_id = f"EcrRepo{camelcase(repo_basename)}"
     repo_name = f"{config.ENVIRONMENT_NAME.get_value()}-{repo_basename}"
@@ -73,6 +73,7 @@ for subfolder in repos_dir.select_dir():
         title=repo_logic_id,
         template=template,
         RepositoryName=repo_name,
+        DeletionPolicy="Retain"
     )
 
 # --- Code Build
