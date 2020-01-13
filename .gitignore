@@ -1,5 +1,6 @@
 # User Settings
 
+*/__pycache__/
 cft/master.json
 *.pyc
 
