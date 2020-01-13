@@ -46,16 +46,57 @@ code_build_service_role = iam.Role(
                         "Resource": "*",
                         "Effect": "Allow"
                     },
+                    {
+                        "Action": [
+                            "codebuild:*"
+                        ],
+                        "Resource": f"arn:aws:codebuild:{config.AWS_REGION.get_value()}:{config.AWS_ACCOUNT_ID.get_value()}:project/{config.CODE_BUILD_PROJECT_NAME.get_value()}",
+                        "Effect": "Allow"
+                    }
                 ]
             }
         ),
     ],
 )
 
+# --- ECR Repository
+cft_dir = Path(__file__).parent
+repos_dir = cft_dir.change(new_basename="repos")
+
+repo_names = list()
+for subfolder in repos_dir.select_dir():
+    repo_basename = subfolder.basename
+    repo_logic_id = f"EcrRepo{camelcase(repo_basename)}"
+    repo_name = f"{config.ENVIRONMENT_NAME.get_value()}-{repo_basename}"
+    repo_names.append(repo_name)
+    res_ecr_repo = ecr.Repository(
+        title=repo_logic_id,
+        template=template,
+        RepositoryName=repo_name,
+    )
+
+# --- Code Build
+EnvironmentVariables = [
+    {
+        "Name": "AWS_ACCOUNT_ID",
+        "Value": config.AWS_ACCOUNT_ID.get_value(),
+        "Type": "PLAINTEXT"
+    },
+    {
+        "Name": "AWS_DEFAULT_REGION",
+        "Value": config.AWS_REGION.get_value(),
+        "Type": "PLAINTEXT"
+    },
+]
+for repo_name in repo_names:
+    key = "IMAGE_REPO_NAME_{}".format(repo_name.upper().replace("-", "_"))
+    value = repo_name
+    EnvironmentVariables.append({"Name": key, "Value": value, "Type": "PLAINTEXT"})
+
 code_build_project = codebuild.Project(
     title="CodeBuildProject",
     template=template,
-    Name=config.ENVIRONMENT_NAME.get_value(),
+    Name=config.CODE_BUILD_PROJECT_NAME.get_value(),
     Description="Docker Image CICD on AWS Best Practice",
     Source=codebuild.Source(
         Type="GITHUB",
@@ -68,30 +109,21 @@ code_build_project = codebuild.Project(
         Type="LINUX_CONTAINER",
         Image="sanhe/cicd:awscli-python3.6.8-packer-slim",
         ComputeType="BUILD_GENERAL1_SMALL",
-        EnvironmentVariables=[],
+        EnvironmentVariables=EnvironmentVariables,
         PrivilegedMode=True,
         ImagePullCredentialsType="SERVICE_ROLE",
     ),
     ServiceRole=code_build_service_role.iam_role_arn,
     BadgeEnabled=True,
+    # Triggers=codebuild.ProjectTriggers(
+    #     Webhook=True,
+    #     FilterGroups=[
+            # codebuild.WebhookFilter(
+            # ),
+        # ],
+    # ),
+
 )
-
-
-# --- ECR Repository
-cft_dir = Path(__file__).parent
-repos_dir = cft_dir.change(new_basename="repos")
-
-for subfolder in repos_dir.select_dir():
-    repo_name = subfolder.basename
-    repo_logic_id = f"EcrRepo{camelcase(repo_name)}"
-    res_ecr_repo = ecr.Repository(
-        title=repo_logic_id,
-        template=template,
-        RepositoryName=f"{config.ENVIRONMENT_NAME.get_value()}-{repo_name}"
-    )
-
-# --- Code Build
-
 
 # --- Tags
 common_tags = {

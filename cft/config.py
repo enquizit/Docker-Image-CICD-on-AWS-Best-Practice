@@ -30,3 +30,11 @@ class Config(ConfigClass):
     AWS_REGION = Constant()
 
     S3_BUCKET_FOR_DEPLOY = Constant()
+
+    # --- Code Build
+
+    CODE_BUILD_PROJECT_NAME = Derivable()
+
+    @CODE_BUILD_PROJECT_NAME.getter
+    def get_CODE_BUILD_PROJECT_NAME(self):
+        return self.ENVIRONMENT_NAME.get_value()
