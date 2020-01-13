@@ -79,6 +79,11 @@ for subfolder in repos_dir.select_dir(recursive=False):
 # --- Code Build
 EnvironmentVariables = [
     {
+        "Name": "ENVIRONMENT_NAME",
+        "Value": config.ENVIRONMENT_NAME.get_value(),
+        "Type": "PLAINTEXT"
+    },
+    {
         "Name": "AWS_ACCOUNT_ID",
         "Value": config.AWS_ACCOUNT_ID.get_value(),
         "Type": "PLAINTEXT"
