@@ -1,0 +1,140 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "EnvironmentName": {
+            "Default": "sanhe-docker-cicd-dev",
+            "Description": "",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "CodeBuildProject": {
+            "Metadata": {
+                "labels": [
+                    "AWS::CodeBuild::Project"
+                ]
+            },
+            "Properties": {
+                "Artifacts": {
+                    "Type": "NO_ARTIFACTS"
+                },
+                "BadgeEnabled": "true",
+                "Description": "Docker Image CICD on AWS Best Practice",
+                "Environment": {
+                    "ComputeType": "BUILD_GENERAL1_SMALL",
+                    "EnvironmentVariables": [],
+                    "Image": "sanhe/cicd:awscli-python3.6.8-packer-slim",
+                    "ImagePullCredentialsType": "SERVICE_ROLE",
+                    "PrivilegedMode": "true",
+                    "Type": "LINUX_CONTAINER"
+                },
+                "Name": "sanhe-docker-cicd-dev",
+                "ServiceRole": {
+                    "Fn::GetAtt": [
+                        "CodeBuildServiceRole",
+                        "Arn"
+                    ]
+                },
+                "Source": {
+                    "GitCloneDepth": 1,
+                    "Location": "https://github.com/enquizit/Docker-Image-CICD-on-awsBest-Practice",
+                    "ReportBuildStatus": "false",
+                    "Type": "GITHUB"
+                },
+                "Tags": [
+                    {
+                        "Key": "Creator",
+                        "Value": "Sanhe Hu"
+                    },
+                    {
+                        "Key": "ProjectName",
+                        "Value": "sanhe-docker-cicd"
+                    },
+                    {
+                        "Key": "Stage",
+                        "Value": "dev"
+                    },
+                    {
+                        "Key": "EnvironmentName",
+                        "Value": "sanhe-docker-cicd-dev"
+                    }
+                ]
+            },
+            "Type": "AWS::CodeBuild::Project"
+        },
+        "CodeBuildServiceRole": {
+            "Metadata": {
+                "labels": [
+                    "AWS::IAM::Role"
+                ]
+            },
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "codebuild.amazonaws.com"
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "Policies": [
+                    {
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "ecr:BatchCheckLayerAvailability",
+                                        "ecr:CompleteLayerUpload",
+                                        "ecr:GetAuthorizationToken",
+                                        "ecr:InitiateLayerUpload",
+                                        "ecr:PutImage",
+                                        "ecr:UploadLayerPart"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource": "*"
+                                }
+                            ],
+                            "Version": "2012-10-17"
+                        },
+                        "PolicyName": "AllowEcrAction"
+                    }
+                ],
+                "RoleName": "sanhe-docker-cicd-dev-code-build-service-role",
+                "Tags": [
+                    {
+                        "Key": "Creator",
+                        "Value": "Sanhe Hu"
+                    },
+                    {
+                        "Key": "ProjectName",
+                        "Value": "sanhe-docker-cicd"
+                    },
+                    {
+                        "Key": "Stage",
+                        "Value": "dev"
+                    },
+                    {
+                        "Key": "EnvironmentName",
+                        "Value": "sanhe-docker-cicd-dev"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::Role"
+        },
+        "EcrRepoWebApp": {
+            "Metadata": {
+                "labels": [
+                    "AWS::ECR::Repository"
+                ]
+            },
+            "Properties": {
+                "RepositoryName": "sanhe-docker-cicd-dev-web-app"
+            },
+            "Type": "AWS::ECR::Repository"
+        }
+    }
+}
