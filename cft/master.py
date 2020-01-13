@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import json
 from config_init import config
-from pathlib_mate import Path
+from configirl import strip_comments
+from pathlib_mate import PathCls as Path
 from troposphere_mate import (
     Template, Parameter,
     iam, ecr, codebuild,
@@ -63,17 +65,56 @@ code_build_service_role = iam.Role(
 cft_dir = Path(__file__).parent
 repos_dir = cft_dir.change(new_basename="repos")
 
+DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS = 30
+
+
 repo_names = list()
 for subfolder in repos_dir.select_dir(recursive=False):
-    repo_basename = subfolder.basename
+    repo_config_file = Path(subfolder, "config.json")
+    if repo_config_file.exists():
+        repo_config_data = json.loads(strip_comments(repo_config_file.read_text("utf-8")))
+
+        try:
+            repo_basename = repo_config_data["repo_name"]
+        except:
+            repo_basename = subfolder.basename
+        try:
+            untagged_image_expire_days = repo_config_data["untagged_image_expire_days"]
+        except:
+            untagged_image_expire_days = DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS
+    else:
+        repo_basename = subfolder.basename
+        untagged_image_expire_days = DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS
+
     repo_logic_id = f"EcrRepo{camelcase(repo_basename)}"
     repo_name = f"{config.ENVIRONMENT_NAME.get_value()}-{repo_basename}"
     repo_names.append(repo_name)
+
+    ecr_lifecycle_policy = {
+        "rules": [
+            {
+                "rulePriority": 1,
+                "description": f"Remove old images (untagged) when it becomes not active in {untagged_image_expire_days} days",
+                "selection": {
+                    "tagStatus": "untagged",
+                    "countType": "sinceImagePushed",
+                    "countNumber": untagged_image_expire_days,
+                    "countUnit": "days"
+                },
+                "action": {"type": "expire"}
+            }
+        ]
+    }
+
     res_ecr_repo = ecr.Repository(
         title=repo_logic_id,
         template=template,
         RepositoryName=repo_name,
-        DeletionPolicy="Retain"
+        DeletionPolicy="Retain",
+        LifecyclePolicy=ecr.LifecyclePolicy(
+            LifecyclePolicyText=json.dumps(ecr_lifecycle_policy),
+            RegistryId=config.AWS_ACCOUNT_ID.get_value()
+        )
     )
 
 # --- Code Build
@@ -124,18 +165,18 @@ code_build_project = codebuild.Project(
     ),
     ServiceRole=code_build_service_role.iam_role_arn,
     BadgeEnabled=True,
-    Triggers=codebuild.ProjectTriggers(
-        Webhook=True,
-        FilterGroups=[
-            [
-                codebuild.WebhookFilter(
-                    Type="EVENT",
-                    Pattern="PUSH,PULL_REQUEST_CREATED,PULL_REQUEST_UPDATED",
-                    ExcludeMatchedPattern=False,
-                ),
-            ]
-        ],
-    ),
+    # Triggers=codebuild.ProjectTriggers(
+    #     Webhook=True,
+    #     FilterGroups=[
+    #         [
+    #             codebuild.WebhookFilter(
+    #                 Type="EVENT",
+    #                 Pattern="PUSH,PULL_REQUEST_CREATED,PULL_REQUEST_UPDATED",
+    #                 ExcludeMatchedPattern=False,
+    #             ),
+    #         ]
+    #     ],
+    # ),
 
 )
 
