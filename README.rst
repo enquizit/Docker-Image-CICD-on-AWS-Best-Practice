@@ -22,3 +22,5 @@ In this tutorial, it is:
 
     # remove image
     docker image rm 110330507156.dkr.ecr.us-east-1.amazonaws.com/sanhe-docker-cicd-dev-web-app:hello-world-flask-app
+
+

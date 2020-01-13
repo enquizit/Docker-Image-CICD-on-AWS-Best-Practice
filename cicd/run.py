@@ -90,18 +90,48 @@ for repo_basename in os.listdir(DIR_REPOS):
         for tag_name in os.listdir(dir_repo_root):
             dir_tag = os.path.join(dir_repo_root, tag_name)
             if os.path.exists(os.path.join(dir_tag, "Dockerfile")):
+                local_repo_identifier = f"{repo_basename}:{tag_name}"
+                ecr_repo_identifier = f"{AWS_ACCOUNT_ID}.dkr.ecr.{AWS_REGION}.amazonaws.com/{ENVIRONMENT_NAME}-{repo_basename}:{tag_name}"
                 todo = (
-                    dir_repo_root, dir_tag, repo_basename, tag_name
+                    dir_repo_root, dir_tag, repo_basename, tag_name, local_repo_identifier, ecr_repo_identifier
                 )
                 todo_list.append(todo)
 
-for todo in todo_list:
-    dir_repo_root, dir_tag, repo_basename, tag_name = todo
-    local_repo_identifier = f"{repo_basename}:{tag_name}"
-    remote_repo_identifier = f"{AWS_ACCOUNT_ID}.dkr.ecr.{AWS_REGION}.amazonaws.com/{ENVIRONMENT_NAME}-{repo_basename}:{tag_name}"
-    logging.warning(f"Build docker image in context at {dir_tag} ...")
-    try:
-        subprocess.check_output(["docker", "build", "-t", local_repo_identifier, dir_tag])
-        subprocess.check_output(["docker", "tag", local_repo_identifier, remote_repo_identifier])
-    except subprocess.CalledProcessError as e:
-        pass
+
+def run_build_image():
+    success_images = list()
+    failed_images = list()
+    for todo in todo_list:
+        dir_repo_root, dir_tag, repo_basename, tag_name, local_repo_identifier, ecr_repo_identifier = todo
+        logging.info(f"Build docker image in context at {dir_tag} ...")
+        try:
+            subprocess.check_output(["docker", "build", "-t", local_repo_identifier, dir_tag])
+            subprocess.check_output(["docker", "tag", local_repo_identifier, ecr_repo_identifier])
+            success_images.append(ecr_repo_identifier)
+        except subprocess.CalledProcessError as e:
+            logging.warning("  Build failed!")
+            logging.warning("  {}".format(e))
+            failed_images.append(ecr_repo_identifier)
+    return success_images, failed_images
+
+
+def run_push_image():
+    for todo in todo_list:
+        dir_repo_root, dir_tag, repo_basename, tag_name, local_repo_identifier, ecr_repo_identifier = todo
+        try:
+            subprocess.check_output(["docker", "push", ecr_repo_identifier])
+        except subprocess.CalledProcessError as e:
+            logging.warning("  Push failed!")
+            logging.warning("  {}".format(e))
+
+
+if __name__ == "__main__":
+    import sys
+
+    sub_command= sys.argv[1]
+    if sub_command == "build":
+        run_build_image()
+    elif sub_command == "push":
+        run_push_image()
+    else:
+        raise ValueError

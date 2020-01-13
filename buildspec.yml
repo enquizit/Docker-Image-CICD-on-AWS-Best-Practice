@@ -15,10 +15,10 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
-      - python ./cicd/run_build.py
-#  post_build:
-#    commands:
-#      - echo Build completed on `date`
-#      - echo Pushing the Docker image...
-#      - docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ENVIRONMENT_NAME-web-app:hello-world-flask-app"
+      - echo Building Docker images ...
+      - python ./cicd/run.py build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing Docker images ...
+      - python ./cicd/run.py push
