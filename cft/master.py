@@ -88,10 +88,10 @@ EnvironmentVariables = [
         "Type": "PLAINTEXT"
     },
 ]
-for repo_name in repo_names:
-    key = "IMAGE_REPO_NAME_{}".format(repo_name.upper().replace("-", "_"))
-    value = repo_name
-    EnvironmentVariables.append({"Name": key, "Value": value, "Type": "PLAINTEXT"})
+# for repo_name in repo_names:
+#     key = "IMAGE_REPO_NAME_{}".format(repo_name.upper().replace("-", "_"))
+#     value = repo_name
+#     EnvironmentVariables.append({"Name": key, "Value": value, "Type": "PLAINTEXT"})
 
 code_build_project = codebuild.Project(
     title="CodeBuildProject",
@@ -107,11 +107,11 @@ code_build_project = codebuild.Project(
     Artifacts=codebuild.Artifacts(Type="NO_ARTIFACTS"),
     Environment=codebuild.Environment(
         Type="LINUX_CONTAINER",
-        Image="sanhe/cicd:awscli-python3.6.8-packer-slim",
+        Image="aws/codebuild/standard:2.0",
         ComputeType="BUILD_GENERAL1_SMALL",
         EnvironmentVariables=EnvironmentVariables,
         PrivilegedMode=True,
-        ImagePullCredentialsType="SERVICE_ROLE",
+        ImagePullCredentialsType="CODEBUILD",
     ),
     ServiceRole=code_build_service_role.iam_role_arn,
     BadgeEnabled=True,
