@@ -2,6 +2,7 @@
 
 */__pycache__/
 cft/master.json
+cft/__pycache__/
 *.pyc
 
 # Byte-compiled / optimized / DLL files
