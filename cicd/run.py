@@ -7,6 +7,12 @@ import os
 import re
 import subprocess
 
+logger = logging.getLogger("ci-runner")
+logger.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+logger.addHandler(stream_handler)
+
 
 def read_text(path):
     with open(path, "rb") as f:
@@ -98,6 +104,11 @@ for repo_basename in os.listdir(DIR_REPOS):
                 todo_list.append(todo)
 
 
+def run_and_log_command(commands):
+    logger.info(">>> {}".format(" ".join(commands)))
+    subprocess.check_output(commands)
+
+
 def run_build_image():
     success_images = list()
     failed_images = list()
@@ -105,12 +116,13 @@ def run_build_image():
         dir_repo_root, dir_tag, repo_basename, tag_name, local_repo_identifier, ecr_repo_identifier = todo
         logging.info(f"Build docker image in context at {dir_tag} ...")
         try:
-            subprocess.check_output(["docker", "build", "-t", local_repo_identifier, dir_tag])
-            subprocess.check_output(["docker", "tag", local_repo_identifier, ecr_repo_identifier])
+            run_and_log_command(["docker", "build", "-t", local_repo_identifier, dir_tag])
+            run_and_log_command(["docker", "tag", local_repo_identifier, ecr_repo_identifier])
+            logger.info("  Success!")
             success_images.append(ecr_repo_identifier)
         except subprocess.CalledProcessError as e:
-            logging.warning("  Build failed!")
-            logging.warning("  {}".format(e))
+            logger.info("  Build failed!")
+            logger.info("  {}".format(e))
             failed_images.append(ecr_repo_identifier)
     return success_images, failed_images
 
@@ -118,11 +130,13 @@ def run_build_image():
 def run_push_image():
     for todo in todo_list:
         dir_repo_root, dir_tag, repo_basename, tag_name, local_repo_identifier, ecr_repo_identifier = todo
+        logging.info(f"Push docker image {ecr_repo_identifier} ...")
         try:
-            subprocess.check_output(["docker", "push", ecr_repo_identifier])
+            run_and_log_command(["docker", "push", ecr_repo_identifier])
+            logger.info("  Success!")
         except subprocess.CalledProcessError as e:
-            logging.warning("  Push failed!")
-            logging.warning("  {}".format(e))
+            logger.info("  Push failed!")
+            logger.info("  {}".format(e))
 
 
 if __name__ == "__main__":
