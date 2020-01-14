@@ -8,12 +8,12 @@ import re
 import subprocess
 
 logger = logging.getLogger("ci-runner")
-logger.setLevel(logging.INFO)
+# logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.INFO)
+# stream_handler.setLevel(logging.INFO)
 logger.addHandler(stream_handler)
 
-
+logger.info("Hello")
 def read_text(path):
     with open(path, "rb") as f:
         content = f.read().decode("utf-8")
