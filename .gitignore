@@ -1,7 +1,7 @@
 # User Settings
 
-*/__pycache__/
 cft/master.json
+cft/config-raw.json
 *.pyc
 
 # Byte-compiled / optimized / DLL files
