@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+Generate the Cloudformation Template to deploy this solution.
+"""
+
 import json
 from config_init import config
 from configirl import strip_comments
@@ -21,7 +25,7 @@ param_env_name = Parameter(
 )
 template.add_parameter(param_env_name)
 
-# --- Resorce
+# --- AWS Resource
 
 # --- IAM Role
 
@@ -48,6 +52,7 @@ code_build_service_role = iam.Role(
                         "Resource": "*",
                         "Effect": "Allow"
                     },
+                    # only allow all codebuild operation on this code build project
                     {
                         "Action": [
                             "codebuild:*"
@@ -71,19 +76,14 @@ DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS = 30
 repo_names = list()
 for subfolder in repos_dir.select_dir(recursive=False):
     repo_config_file = Path(subfolder, "config.json")
+    repo_basename = subfolder.basename
     if repo_config_file.exists():
         repo_config_data = json.loads(strip_comments(repo_config_file.read_text("utf-8")))
-
-        try:
-            repo_basename = repo_config_data["repo_name"]
-        except:
-            repo_basename = subfolder.basename
         try:
             untagged_image_expire_days = repo_config_data["untagged_image_expire_days"]
         except:
             untagged_image_expire_days = DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS
     else:
-        repo_basename = subfolder.basename
         untagged_image_expire_days = DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS
 
     repo_logic_id = f"EcrRepo{camelcase(repo_basename)}"
@@ -135,10 +135,6 @@ EnvironmentVariables = [
         "Type": "PLAINTEXT"
     },
 ]
-# for repo_name in repo_names:
-#     key = "IMAGE_REPO_NAME_{}".format(repo_name.upper().replace("-", "_"))
-#     value = repo_name
-#     EnvironmentVariables.append({"Name": key, "Value": value, "Type": "PLAINTEXT"})
 
 code_build_project = codebuild.Project(
     title="CodeBuildProject",
@@ -147,7 +143,7 @@ code_build_project = codebuild.Project(
     Description="Docker Image CICD on AWS Best Practice",
     Source=codebuild.Source(
         Type="GITHUB",
-        Location="https://github.com/enquizit/Docker-Image-CICD-on-awsBest-Practice.git",
+        Location=config.GITHUB_URL.get_value(),
         GitCloneDepth=1,
         GitSubmodulesConfig=codebuild.GitSubmodulesConfig(
             FetchSubmodules=False,

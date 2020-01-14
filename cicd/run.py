@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Run docker build -> test -> push workflow for all repositories and images.
+"""
+
 import json
 import logging
 import os
@@ -8,12 +12,12 @@ import re
 import subprocess
 
 logger = logging.getLogger("ci-runner")
-# logger.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
-# stream_handler.setLevel(logging.INFO)
+stream_handler.setLevel(logging.INFO)
 logger.addHandler(stream_handler)
 
-logger.info("Hello")
+
 def read_text(path):
     with open(path, "rb") as f:
         content = f.read().decode("utf-8")
@@ -166,7 +170,7 @@ def run_push_image():
 if __name__ == "__main__":
     import sys
 
-    sub_command= sys.argv[1]
+    sub_command = sys.argv[1]
     if sub_command == "build":
         run_build_image()
     elif sub_command == "push":

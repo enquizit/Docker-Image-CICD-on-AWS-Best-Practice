@@ -31,6 +31,8 @@ class Config(ConfigClass):
 
     S3_BUCKET_FOR_DEPLOY = Constant()
 
+    GITHUB_URL = Constant()
+
     # --- Code Build
 
     CODE_BUILD_PROJECT_NAME = Derivable()

@@ -1,0 +1,4 @@
+boto3
+configirl
+troposphere_mate
+pathlib_mate

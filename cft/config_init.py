@@ -7,7 +7,7 @@ from config import Config
 config = Config()
 
 if config.is_ci_runtime():
-    pass
+    raise NotImplementedError
 else:
     config_data = dict()
     config_shared_data = json.loads(strip_comments(read_text("01-config-shared.json")))

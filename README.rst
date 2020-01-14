@@ -7,17 +7,38 @@ Docker Image CICD on AWS Best Practice
 ==============================================================================
 
 
-What
+What Problem does this Solution solved
+------------------------------------------------------------------------------
+
+Move your infrastructure to Cloud and use dockerized application becomes more and more popular in 2020. Lots of federal organizations are moving to the Cloud. But they don't trust DockerHub and CircleCI. A lots of company want to have 100% control IT system.
+
+Personally I love CircleCI + DockerHub for open source. But for enterprise, people may have concerns.
+
+In this repo, a private CI/CD docker image build, test, publish solution is provided. In this solution nothing go beyond enterprise owned AWS Account. And it scales to any number of docker images and tags. And it comes with a CloudFormation template allows you to just enter few information like your AWS Account ID, AWS Region and AWS Profile you want to use, and the CICD pipeline is ready to use.
 
 
+How to Deploy this Solution to AWS
+------------------------------------------------------------------------------
 
 
-Just a read me
+Pre-requisite
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. install python Make sure your laptop installed ``Python3.6+``, and run ``pip install -r requirements.txt``. Make sure your ``pip`` command refers to the correct Python version.
+
+2. prepare your AWS Account and AWS IAM User. create an AWS Account, and create an IAM User with proper privilege (be able to run cloudformation and create related resources). Then make your aws cli works and aws credential configured on your laptop.
 
 
+Edit Config
+------------------------------------------------------------------------------
+
+1. open ``./cft/01-config-shared.json``, fill in related information. Make sure you have the s3 bucket readfy for cloudformation template uploads.
+
+2. choose the environment you want to use. In this example, I use ``./cft/switch-env dev``. Of course you can use test or prod.
 
 
-In this tutorial, it is:
+Deploy this Solution
+------------------------------------------------------------------------------
 
 .. code-block:: bash
 
@@ -32,5 +53,3 @@ In this tutorial, it is:
 
     # remove image
     docker image rm 110330507156.dkr.ecr.us-east-1.amazonaws.com/sanhe-docker-cicd-dev-web-app:hello-world-flask-app
-
-
