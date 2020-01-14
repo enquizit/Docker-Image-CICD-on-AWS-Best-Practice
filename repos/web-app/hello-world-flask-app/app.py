@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask
 
 app = Flask(__name__)
@@ -7,4 +9,10 @@ def hello():
     return "Hello world!"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=12345, debug=True)
+    import sys
+
+    if len(sys.argv) >= 2:
+        port = int(sys.argv[1])
+    else:
+        port = 80
+    app.run(host="0.0.0.0", port=port, debug=True)

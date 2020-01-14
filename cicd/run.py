@@ -8,7 +8,7 @@ import re
 import subprocess
 
 logger = logging.getLogger("ci-runner")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.INFO)
 logger.addHandler(stream_handler)
@@ -114,16 +114,40 @@ def run_build_image():
     failed_images = list()
     for todo in todo_list:
         dir_repo_root, dir_tag, repo_basename, tag_name, local_repo_identifier, ecr_repo_identifier = todo
+
         logging.info(f"Build docker image in context at {dir_tag} ...")
         try:
             run_and_log_command(["docker", "build", "-t", local_repo_identifier, dir_tag])
-            run_and_log_command(["docker", "tag", local_repo_identifier, ecr_repo_identifier])
-            logger.info("  Success!")
-            success_images.append(ecr_repo_identifier)
+            logger.info("  Build success!")
         except subprocess.CalledProcessError as e:
             logger.info("  Build failed!")
             logger.info("  {}".format(e))
             failed_images.append(ecr_repo_identifier)
+            continue
+
+        logger.info("Run smoke test ...")
+        try:
+            run_and_log_command(["bash", os.path.join(dir_tag, "test.sh")])
+            logger.info("  Test passed!")
+        except subprocess.CalledProcessError as e:
+            logger.info("  Test failed!")
+            logger.info("  {}".format(e))
+            failed_images.append(ecr_repo_identifier)
+            continue
+
+        logger.info("Tag image ...")
+        try:
+            run_and_log_command(["docker", "tag", local_repo_identifier, ecr_repo_identifier])
+            logger.info("  Tag success!")
+            success_images.append(ecr_repo_identifier)
+        except subprocess.CalledProcessError as e:
+            logger.info("  Tag failed!")
+            logger.info("  {}".format(e))
+            failed_images.append(ecr_repo_identifier)
+            continue
+
+        success_images.append(ecr_repo_identifier)
+
     return success_images, failed_images
 
 
