@@ -5,6 +5,7 @@ Generate the Cloudformation Template to deploy this solution.
 """
 
 import json
+
 from config_init import config
 from configirl import strip_comments
 from pathlib_mate import PathCls as Path
@@ -59,6 +60,43 @@ code_build_service_role = iam.Role(
                         ],
                         "Resource": f"arn:aws:codebuild:{config.AWS_REGION.get_value()}:{config.AWS_ACCOUNT_ID.get_value()}:project/{config.CODE_BUILD_PROJECT_NAME.get_value()}",
                         "Effect": "Allow"
+                    },
+                    {
+                        "Effect": "Allow",
+                        "Resource": [
+                            f"arn:aws:logs:{config.AWS_REGION.get_value()}:{config.AWS_ACCOUNT_ID.get_value()}:log-group:/aws/codebuild/{config.CODE_BUILD_PROJECT_NAME.get_value()}",
+                            f"arn:aws:logs:{config.AWS_REGION.get_value()}:{config.AWS_ACCOUNT_ID.get_value()}:log-group:/aws/codebuild/{config.CODE_BUILD_PROJECT_NAME.get_value()}:*"
+                        ],
+                        "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents"
+                        ]
+                    },
+                    {
+                        "Effect": "Allow",
+                        "Resource": [
+                            f"arn:aws:s3:::codepipeline-{config.AWS_REGION.get_value()}-*"
+                        ],
+                        "Action": [
+                            "s3:PutObject",
+                            "s3:GetObject",
+                            "s3:GetObjectVersion",
+                            "s3:GetBucketAcl",
+                            "s3:GetBucketLocation"
+                        ]
+                    },
+                    {
+                        "Effect": "Allow",
+                        "Action": [
+                            "codebuild:CreateReportGroup",
+                            "codebuild:CreateReport",
+                            "codebuild:UpdateReport",
+                            "codebuild:BatchPutTestCases"
+                        ],
+                        "Resource": [
+                            f"arn:aws:codebuild:{config.AWS_REGION.get_value()}:{config.AWS_ACCOUNT_ID.get_value()}:report-group/{config.CODE_BUILD_PROJECT_NAME.get_value()}-*"
+                        ]
                     }
                 ]
             }
@@ -71,7 +109,6 @@ cft_dir = Path(__file__).parent
 repos_dir = cft_dir.change(new_basename="repos")
 
 DEFAULT_UNTAGGED_IMAGE_EXPIRE_DAYS = 30
-
 
 repo_names = list()
 for subfolder in repos_dir.select_dir(recursive=False):
