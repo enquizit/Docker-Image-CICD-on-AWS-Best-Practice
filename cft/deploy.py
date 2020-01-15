@@ -4,7 +4,7 @@ import boto3
 from master import config, template
 from troposphere_mate import upload_template, deploy_stack
 
-session = boto3.session.Session(profile_name=config.AWS_PROFILE.get_value())
+session = boto3.session.Session(profile_name=config.AWS_PROFILE.get_value(), region_name=config.AWS_REGION.get_value())
 s3_client = session.client("s3")
 cf_client = session.client("cloudformation")
 
