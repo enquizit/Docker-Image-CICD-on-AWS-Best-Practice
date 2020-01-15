@@ -40,6 +40,26 @@ Edit Config
 Deploy this Solution
 ------------------------------------------------------------------------------
 
+First, let's deploy via cloudformation.
+
+.. code-block:: bash
+
+    # VERY IMPORTANT!
+    cd ./cft
+
+    # run deploy script
+    python deploy.py
+
+Then, go to your CodeBuild project control. Add your github OAUTH token and choose your git repo. And then check the box that triggers a build every time you push to Git.
+
+IMPORTANT:
+
+    **Configure git credential and link GitHub repo can not done via CloudFormation, and it is sensitive, you have to manually do it. And, everytime you have update the CloudFormation template, you have to re-configure it again. However, it doesn't take much time.**
+
+
+Pull image from ECR
+------------------------------------------------------------------------------
+
 .. code-block:: bash
 
     # get temp ecr login
